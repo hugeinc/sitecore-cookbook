@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<connectionStrings>
+  <% @databases.each do |db| %>
+    <add name="<%= db['name'] %>" connectionString="user id=<%= db['user_id'] %>;password=<%= db['password'] %>;Data Source=<%= db['data_source'] %>;Database=<%= db['database'] %>"/>
+  <% end %>
+</connectionStrings>
