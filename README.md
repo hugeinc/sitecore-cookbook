@@ -6,13 +6,13 @@ Cookbook to install the [Sitecore 7.0 content management system](http://www.site
 
 This cookbook implements resources useful for installing and/or configuring Sitecore:
 
-The *sitecore_cms* resource installs the files, sets permissions, and makes IIS configurations
+The **sitecore_cms** resource installs the files, sets permissions, and makes IIS configurations
 for serving a website powered by Sitecore. There's also an optional action to enable the Solr
 content search provider.
 
-The *sitecore_config* resource enables and disables settings in the App_Config\Includes directory.
+The **sitecore_config** resource enables and disables settings in the App_Config\Includes directory.
 
-The *sitecore_db* resource attaches the Sitecore databases, creates a user account, and grants
+The **sitecore_db** resource attaches the Sitecore databases, creates a user account, and grants
 it permissions on those DBs.
 
 These resource can be used together to spin up a VM on a developer workstation, or independently
