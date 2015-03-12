@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: sitecore
-# Library:: helper
+# Library:: _filesystem_helper
 #
 # Copyright 2014, Huge, Inc.
 #

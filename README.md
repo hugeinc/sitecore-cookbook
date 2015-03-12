@@ -27,6 +27,9 @@ This cookbook expands on some of the ideas found in the
 
 Neither the Sitecore CMS, Windows, nor a license file are included with this cookbook. Users are
 responsible for obtaining and licensing the proprietary bits of a Sitecore tech stack on their own.
+The licensing of this cookbook does not apply to Sitecore or Windows.
+
+This cookbook references proprietary software. See [NOTICES](NOTICES) for more information.
 
 # Requirements
 
