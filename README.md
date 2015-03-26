@@ -146,10 +146,10 @@ vagrant, this means the vagrant user on your development box.
       action [:install, :create_login, :assign_roles]
       site 'MySite'
       databases [
-        { name: 'Sitecore.Core', type: :core },
-        { name: 'Sitecore.Master', type: :master },
-        { name: 'Sitecore.Web', type: :web },
-        { name: 'Sitecore.Analytics', type: :analytics }
+        { name: 'Sitecore.Core', type: 'core' },
+        { name: 'Sitecore.Master', type: 'master' },
+        { name: 'Sitecore.Web', type: 'web' },
+        { name: 'Sitecore.Analytics', type: 'analytics' }
       ]
       source_directory 'c:/inetpub/wwwroot/MySite/Databases'
       username 'sitecore_user'
