@@ -29,7 +29,7 @@ Neither the Sitecore CMS, Windows, nor a license file are included with this coo
 responsible for obtaining and licensing the proprietary bits of a Sitecore tech stack on their own.
 The licensing of this cookbook does not apply to Sitecore or Windows.
 
-This cookbook references proprietary software. See [NOTICES](NOTICES) for more information.
+This cookbook references proprietary software. See [NOTICE](NOTICE) for more information.
 
 # Requirements
 
