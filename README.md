@@ -194,6 +194,10 @@ sitecore_db resource:
 
 Ensure the user account running the Chef client has permission to create databases.
 
+# How to contribute
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) to learn how you can help improve this cookbook.
+
 # Authors
 
 - Huge (<sysops@hugeinc.com>)
