@@ -65,29 +65,29 @@ such as a secured and restricted URL accessible by Chef.
       source 'c:/path/to/sitecore7.zip'
       license 'c:/path/to/license.xml'
       bindings [
-        { host: 'example.com', proto: 'http', port: 80 }
+        { 'host' => 'example.com', 'proto' => 'http', 'port' => 80 }
       ]
       connection_strings [
         {
-          name: 'core',
-          database: 'Sitecore.Core',
-          user_id: 'sitecore_user',
-          password: 'foobar123',
-          data_source: '(local)\SQLEXPRESS'
+          'name' => 'core',
+          'database' => 'Sitecore.Core',
+          'user_id' => 'sitecore_user',
+          'password' => 'foobar123',
+          'data_source' => '(local)\SQLEXPRESS'
         },
         {
-          name: 'master',
-          database: 'Sitecore.Master',
-          user_id: 'sitecore_user',
-          password: 'foobar123',
-          data_source: '(local)\SQLEXPRESS'
+          'name' => 'master',
+          'database' => 'Sitecore.Master',
+          'user_id' => 'sitecore_user',
+          'password' => 'foobar123',
+          'data_source' => '(local)\SQLEXPRESS'
         },
         {
-          name: 'web',
-          database: 'Sitecore.Web',
-          user_id: 'sitecore_user',
-          password: 'foobar123',
-          data_source: '(local)\SQLEXPRESS'
+          'name' => 'web',
+          'database' => 'Sitecore.Web',
+          'user_id' => 'sitecore_user',
+          'password' => 'foobar123',
+          'data_source' => '(local)\SQLEXPRESS'
         }
       ]
     end
@@ -146,10 +146,10 @@ vagrant, this means the vagrant user on your development box.
       action [:install, :create_login, :assign_roles]
       site 'MySite'
       databases [
-        { name: 'Sitecore.Core', type: 'core' },
-        { name: 'Sitecore.Master', type: 'master' },
-        { name: 'Sitecore.Web', type: 'web' },
-        { name: 'Sitecore.Analytics', type: 'analytics' }
+        { 'name' => 'Sitecore.Core', 'type' => 'core' },
+        { 'name' => 'Sitecore.Master', 'type' => 'master' },
+        { 'name' => 'Sitecore.Web', 'type' => 'web' },
+        { 'name' => 'Sitecore.Analytics', 'type' => 'analytics' }
       ]
       source_directory 'c:/inetpub/wwwroot/MySite/Databases'
       username 'sitecore_user'
