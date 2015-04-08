@@ -16,3 +16,7 @@ bin/*
 .kitchen/
 .kitchen.local.yml
 Vagrantfile
+
+# RVM
+.ruby-gemset
+.ruby-version
