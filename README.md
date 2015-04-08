@@ -183,16 +183,7 @@ Use Rspec to execute the ChefSpec tests:
 
 # Troubleshooting
 
-## Unable to Attach Database(s)
-
-A FailedOperationException is thrown when attaching databases with the
-sitecore_db resource:
-
-    Exception calling "AttachDatabase" with "2" argument(s): "Attach database failed for Server [your server here]."
-    ...
-    FullyQualifiedErrorId : FailedOperationException
-
-Ensure the user account running the Chef client has permission to create databases.
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for help with problems commonly encountered by users of this cookbook. If that document doesn't address your situation, feel free to [open an issue on Github](https://github.com/hugeinc/sitecore-cookbook/issues).
 
 # How to contribute
 
