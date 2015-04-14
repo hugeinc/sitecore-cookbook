@@ -1,6 +1,6 @@
 # Sitecore Cookbook
 
-Cookbook to install the [Sitecore 7.0 content management system](http://www.sitecore.net/).
+Cookbook to install the [Sitecore 7.x content management system](http://www.sitecore.net/).
 
 # About
 
