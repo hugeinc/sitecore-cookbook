@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+require 'fileutils'
 require 'chef/resource'
 require_relative '_cms_helper'
 require_relative '_filesystem_helper'
@@ -162,9 +163,9 @@ class Chef
         r = new_resource
         Chef::Log.info("Installing Sitecore to #{r.path}")
         zip = fetch_file(r.source, r.checksum)
-        create_sitecore_directory(r.path)
+        ::FileUtils::mkdir_p(r.path) unless ::Dir.exist?(r.path)
         set_sitecore_permissions(r.path)
-        unzip(zip, r.path, overwrite: false)
+        extract_sitecore_files(zip, r.path)
         configure_data_folder(web_config_path, data_path)
         write_connection_strings(connection_strings_path, r.connection_strings)
         create_app_pool(r.name, r.runtime_version, r.identity)
@@ -183,8 +184,10 @@ class Chef
         Chef::Log.info("Enabling Solr for #{r.name}")
         remove_lucene_configs(website_path)
         zip = fetch_file(r.solr_libs)
+        unzip_path = "#{zip}.extracted"
+        unzip(zip, unzip_path)
         bin_dir = ::File.join(website_path, 'bin')
-        unzip(zip, bin_dir, overwrite: true)
+        ::FileUtils::cp_r(::File.join(unzip_path, '.'), bin_dir)
       end
 
       private
@@ -208,17 +211,6 @@ class Chef
       def connection_strings_path
         @sc_connection_strings_path ||= ::File.join(website_path, 'App_Config',
                                                     'connectionStrings.config')
-      end
-
-      def create_sitecore_directory(path)
-        code = <<EOH
-$path = '#{ps_safe_path(path)}'
-if (!(Test-Path $path))
-{
-  New-Item $path -Type directory -Force
-}
-EOH
-        powershell_out(code)
       end
 
       def place_license_file(source, dest_folder)
@@ -251,6 +243,22 @@ EOH
         t.variables(databases: dbs)
         t.cookbook('sitecore')
         t.run_action(:create)
+      end
+
+      def extract_sitecore_files(zip, dest)
+        if !::Dir[glob_safe_path(::File.join(dest, '*'))].empty?
+          Chef::Log.info("Sitecore files already exist at #{dest}")
+          return
+        end
+
+        unzip_path = "#{zip}.extracted"
+        unzip(zip, unzip_path)
+        container_glob = glob_safe_path("#{unzip_path}/[Ss]itecore*rev*/")
+        container = ::Dir.glob(container_glob).first
+        if container.nil?
+          container = unzip_path
+        end
+        ::FileUtils.cp_r(::File.join(container, '.'), dest)
       end
     end
   end
