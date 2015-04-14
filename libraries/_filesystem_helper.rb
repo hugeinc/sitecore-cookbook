@@ -23,8 +23,6 @@ include Windows::Helper
 # Top-level module containing logic for working with Sitecore.
 #
 module Sitecore
-  DEFAULT_UNZIP_OPTIONS = { overwrite: false }
-
   #
   # Utilities for working with the file system.
   #
@@ -40,6 +38,16 @@ module Sitecore
         path = "#{drive}:#{path}" if path !~ /^[A-Za-z]:/
       end
       path
+    end
+
+    #
+    # A fix for this:
+    #   Dir['/var/chef/cache/*'] => ['somefile1', 'somefile2']
+    #   Dir['\\var\\chef\\cache\\*'] => []
+    #   Dir['C:\\var\\chef\\cache\\*'] => []
+    #   Dir['C:/var/chef/cache/*'] => []
+    def glob_safe_path(path)
+      return path.gsub(::File::ALT_SEPARATOR, ::File::SEPARATOR).gsub(/^[a-z]:/i, '')
     end
 
     #
@@ -70,29 +78,24 @@ module Sitecore
     # Expand the given zip file to the given destination directory. Overwrite
     # any existing files if the overwrite flag is true.
     #
-    def unzip(zip, dest, options = nil)
+    def unzip(zip, dest)
+      return if !::Dir[glob_safe_path(::File.join(dest, '*'))].empty?
       zip = ps_safe_path(zip)
       dest = ps_safe_path(dest).chomp('/').chomp('\\')
-      options = {} unless options.is_a?(Hash)
-      settings = Sitecore::DEFAULT_UNZIP_OPTIONS.merge(options)
 
       unzip = <<-EOH
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $zip = Get-Item('#{zip}')
+        $dest_path = '#{dest}'
+        if (!(Test-Path $dest_path))
+        {
+          New-Item $dest_path -Type directory -Force
+        }
         $dest = Get-Item('#{dest}')
         [System.IO.Compression.ZipFile]::ExtractToDirectory($zip, $dest)
       EOH
 
-      if settings[:overwrite] != true
-        unzip = <<-EOH
-          if (!(Test-Path '#{dest}\\*'))
-          {
-            #{unzip}
-          }
-        EOH
-      end
-
-      powershell_out!(unzip) if ::File.exist?(zip) && ::File.directory?(dest)
+      powershell_out!(unzip)
     end
   end
 end
