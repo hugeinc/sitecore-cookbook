@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <connectionStrings>
   <% @databases.each do |db| %>
-    <% if db.connection_string.nil? %>
+    <% if db['connection_string'].nil? %>
       <add name="<%= db['name'] %>" connectionString="user id=<%= db['user_id'] %>;password=<%= db['password'] %>;Data Source=<%= db['data_source'] %>;Database=<%= db['database'] %>"/>
     <% else %>
       <add name="<%= db['name'] %>" connectionString="<%= db['connection_string'] %>"/>
