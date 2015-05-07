@@ -68,6 +68,10 @@ describe 'sitecore_cms' do
         'password' => 'a_password',
         'data_source' => 'db.delivery1.example.com',
         'database' => 'sitecore_web'
+      },
+      {
+        'name' => 'analytics',
+        'connection_string' => 'mongodb://mongodb/analytics'
       }
     ]
   end
