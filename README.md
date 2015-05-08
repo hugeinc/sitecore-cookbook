@@ -88,6 +88,10 @@ such as a secured and restricted URL accessible by Chef.
           'user_id' => 'sitecore_user',
           'password' => 'foobar123',
           'data_source' => '(local)\SQLEXPRESS'
+        },
+        {
+          'name' => 'analytics',
+          'connection_string' => 'mongodb://mongodb/analytics'
         }
       ]
     end

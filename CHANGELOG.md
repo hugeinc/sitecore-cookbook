@@ -2,6 +2,10 @@ Sitecore Cookbook Change Log
 ============================
 This file is used to list changes made in each version of the Sitecore cookbook.
 
+v 0.5.1 (2015-05-08)
+--------------------
+- [#19](https://github.com/hugeinc/sitecore-cookbook/pull/19) Add ability to pass an entire connection string.
+
 v 0.5.0 (2015-04-14)
 --------------------
 - [#1](https://github.com/hugeinc/sitecore-cookbook/issues/1) Stop flooding the console with ChefSpec deprecation notices
