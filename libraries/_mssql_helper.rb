@@ -131,5 +131,95 @@ if ($db -ne $NULL -and $login -ne $NULL -and $user -ne $NULL)
 EOH
       powershell_out!(code)
     end
+
+    #
+    # Create a new Domain Group login, if one with the given name doesn't already
+    # exist.
+    #
+    def create_grouplogin(host, groupname, domainname)
+      code = <<EOH
+$group = Get-WmiObject Win32_Group -filter \\"Name='#{groupname}'\\"
+if($group)
+{
+[System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo')
+$server = New-Object('Microsoft.SqlServer.Management.Smo.Server') #{host}
+
+$groupname = '#{domainname}\\#{groupname}'
+$existingLogin = $server.Logins.Item($groupname)
+if ($existingLogin -eq $NULL)
+{
+  $login = New-Object Microsoft.SqlServer.Management.Smo.Login('#{host}', $groupname)
+
+  $login.LoginType = 'WindowsGroup'
+  $login.PasswordPolicyEnforced = $false
+  $login.PasswordExpirationEnabled = $false
+  $login.Create()
+}
+}
+EOH
+      powershell_out!(code)
+    end
+
+    #
+    # Add a Domain Group to a database, associating it with a pre-existing Group of
+    # the same name.
+    #
+    def add_grouplogin_to_db(host, groupname, database, domainname)
+      code = <<EOH
+$group = Get-WmiObject Win32_Group -filter \\"Name='#{groupname}'\\"
+if($group)
+{
+  [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo')
+  $server = New-Object('Microsoft.SqlServer.Management.Smo.Server') #{host}
+  $db = $server.Databases.Item('#{database}')
+  $login = $server.Logins.Item('#{domainname}\\#{groupname}')
+  if ($db -ne $NULL -and $login -ne $NULL)
+  {
+    $grp = $db.Users.Item('#{domainname}\\#{groupname}')
+    if ($grp -eq $NULL)
+    {
+      $grp = New-Object ('Microsoft.SqlServer.Management.Smo.User') ($db, '#{domainname}\\#{groupname}')
+      $grp.Login = "#{domainname}\\#{groupname}"
+      $grp.Create()
+    }
+  }
+}
+EOH
+      powershell_out!(code)
+    end
+
+    #
+    # Assign all the roles named in the given array to the Domain Group in the given
+    # database.
+    #
+    def assign_db_grouproles(host, groupname, database, roles, domainname)
+      code = <<EOH
+$group = Get-WmiObject Win32_Group -filter \\"Name='#{groupname}'\\"
+if($group)
+{
+  [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo')
+  $server = New-Object('Microsoft.SqlServer.Management.Smo.Server') #{host}
+  $db = $server.Databases.Item('#{database}')
+  $login = $server.Logins.Item('#{domainname}\\#{groupname}')
+  $grp = $db.Users.Item('#{domainname}\\#{groupname}')
+  if ($db -ne $NULL -and $login -ne $NULL -and $grp -ne $NULL)
+    {
+    $roles = @(#{roles.map { |r| "'#{r}'" }.join(',')})
+    foreach ($roleName in $roles)
+    {
+      if ($grp.IsMember($roleName) -eq $false)
+      {
+        $role = $db.Roles.Item($roleName)
+        if ($role -ne $NULL)
+        {
+          $role.AddMember('#{domainname}\\#{groupname}')
+        }
+      }
+    }
+  }
+}
+EOH
+      powershell_out!(code)
+    end
   end
 end
