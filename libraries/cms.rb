@@ -42,6 +42,8 @@ class Chef
         @connection_strings = nil
         @hostname = name
         @path = ::File.join('C:', 'inetpub', 'wwwroot', name)
+        @website_path = nil
+        @data_path = nil
         @runtime_version = 'v4.0'
         @identity = 'NetworkService'
         @solr_libs = nil
@@ -107,6 +109,22 @@ class Chef
       end
 
       #
+      # Set the directory path where the website will be installed. Defaults
+      # to c:/inetpub/wwwroot/#{name}.
+      #
+      def website_path(arg = nil)
+        set_or_return(:website_path, arg, kind_of: [String])
+      end
+
+      #
+      # Set the directory path where the site will be installed. Defaults
+      # to c:/inetpub/wwwroot/#{name}.
+      #
+      def data_path(arg = nil)
+        set_or_return(:data_path, arg, kind_of: [String])
+      end
+
+      #
       # Runtime version for the app pool.
       #
       def runtime_version(arg = nil)
@@ -152,6 +170,10 @@ class Chef
         @current_resource.identity(r.identity)
         @current_resource.license(r.license)
         @current_resource.path(r.path)
+
+        @current_resource.website_path(r.website_path)
+        @current_resource.data_path(r.data_path)
+
         @current_resource.runtime_version(r.runtime_version)
         @current_resource.solr_libs(r.solr_libs)
         @current_resource.source(r.source)
@@ -163,9 +185,25 @@ class Chef
         r = new_resource
         Chef::Log.info("Installing Sitecore to #{r.path}")
         zip = fetch_file(r.source, r.checksum)
-        ::FileUtils::mkdir_p(r.path) unless ::Dir.exist?(r.path)
-        set_sitecore_permissions(r.path)
-        extract_sitecore_files(zip, r.path)
+
+        # Create the website_path or path directory if not already done
+        if new_resource.website_path.nil?
+          ::FileUtils::mkdir_p(r.path) unless ::Dir.exist?(r.path)
+        else
+          ::FileUtils::mkdir_p(r.website_path) unless ::Dir.exist?(r.website_path)
+        end
+
+        # Create the data_path or path directory if not already done
+        if new_resource.data_path.nil?
+          ::FileUtils::mkdir_p(r.path) unless ::Dir.exist?(r.path)
+        else
+          ::FileUtils::mkdir_p(r.data_path) unless ::Dir.exist?(r.data_path)
+        end
+
+        # Set permissions on the path or website_path directory
+        new_resource.website_path.nil? ? set_sitecore_permissions(r.path) : set_sitecore_permissions(r.website_path)
+
+        extract_sitecore_files(zip, website_path, data_path)
         configure_data_folder(web_config_path, data_path)
         write_connection_strings(connection_strings_path, r.connection_strings)
         create_app_pool(r.name, r.runtime_version, r.identity)
@@ -178,26 +216,26 @@ class Chef
 
       def action_enable_solr
         r = new_resource
-        solr_dll = ::File.join(website_path, 'bin',
+        solr_dll = ::File.join(r.website_path, 'bin',
                                'Sitecore.ContentSearch.SolrProvider.dll')
         return if r.solr_libs.nil? || ::File.exist?(solr_dll)
         Chef::Log.info("Enabling Solr for #{r.name}")
-        remove_lucene_configs(website_path)
+        remove_lucene_configs(r.website_path)
         zip = fetch_file(r.solr_libs)
         unzip_path = "#{zip}.extracted"
         unzip(zip, unzip_path)
-        bin_dir = ::File.join(website_path, 'bin')
+        bin_dir = ::File.join(r.website_path, 'bin')
         ::FileUtils::cp_r(::File.join(unzip_path, '.'), bin_dir)
       end
 
       private
 
       def website_path
-        @sc_website_path ||= ::File.join(new_resource.path, 'Website')
+        new_resource.website_path.nil? ? ::File.join(new_resource.path, 'Website') : new_resource.website_path
       end
 
       def data_path
-        @sc_data_path ||= ::File.join(new_resource.path, 'Data')
+        new_resource.data_path.nil? ? ::File.join(new_resource.path, 'Data') : new_resource.data_path
       end
 
       def license_path
@@ -245,9 +283,9 @@ class Chef
         t.run_action(:create)
       end
 
-      def extract_sitecore_files(zip, dest)
-        if !::Dir[glob_safe_path(::File.join(dest, '*'))].empty?
-          Chef::Log.info("Sitecore files already exist at #{dest}")
+      def extract_sitecore_files(zip, web_dest, data_dest)
+        if !::Dir[glob_safe_path(::File.join(web_dest, '*'))].empty?
+          Chef::Log.info("Sitecore files already exist at #{web_dest}")
           return
         end
 
@@ -258,7 +296,10 @@ class Chef
         if container.nil?
           container = unzip_path
         end
-        ::FileUtils.cp_r(::File.join(container, '.'), dest)
+
+        ::FileUtils.cp_r(::File.join(container, 'Website','.'), web_dest)
+        ::FileUtils.cp_r(::File.join(container, 'Data', '.'), data_dest)
+
       end
     end
   end
