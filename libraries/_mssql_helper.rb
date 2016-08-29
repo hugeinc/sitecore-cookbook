@@ -138,7 +138,7 @@ EOH
     #
     def create_grouplogin(host, groupname, domainname)
       code = <<EOH
-$group = Get-WmiObject Win32_Group -filter \\"Name='#{groupname}'\\"
+$group = Get-WmiObject -class Win32_Group -computer (Get-WmiObject Win32_ComputerSystem).domain -filter \\"Name='#{groupname}'\\"
 if($group)
 {
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo')
@@ -166,7 +166,7 @@ EOH
     #
     def add_grouplogin_to_db(host, groupname, database, domainname)
       code = <<EOH
-$group = Get-WmiObject Win32_Group -filter \\"Name='#{groupname}'\\"
+$group = Get-WmiObject -class Win32_Group -computer (Get-WmiObject Win32_ComputerSystem).domain -filter \\"Name='#{groupname}'\\"
 if($group)
 {
   [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo')
@@ -194,7 +194,7 @@ EOH
     #
     def assign_db_grouproles(host, groupname, database, roles, domainname)
       code = <<EOH
-$group = Get-WmiObject Win32_Group -filter \\"Name='#{groupname}'\\"
+$group = Get-WmiObject -class Win32_Group -computer (Get-WmiObject Win32_ComputerSystem).domain -filter \\"Name='#{groupname}'\\"
 if($group)
 {
   [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Smo')
