@@ -34,13 +34,17 @@ class Chef
         @resource_name = :sitecore_db
         @provider = Chef::Provider::SitecoreDb
         @action = :install
-        @allowed_actions = [:install, :create_login, :assign_roles]
+        @allowed_actions = [:install, :create_login, :create_grouplogin, :assign_roles, :assign_db_grouproles]
         @host = name
         @site = ''
         @databases = []
         @username = nil
         @password = nil
-        @source_directory = ::File.join('C:', 'inetpub', 'wwwroot', site,
+        @groupname = nil
+        @domainname = nil
+        @source_data_directory = ::File.join('C:', 'inetpub', 'wwwroot', site,
+                                        'Databases')
+        @source_log_directory = ::File.join('C:', 'inetpub', 'wwwroot', site,
                                         'Databases')
         @returns = 0
       end
@@ -74,10 +78,17 @@ class Chef
       end
 
       #
-      # Path to a directory containing the database files.
+      # Path to a directory containing the database data files.
       #
-      def source_directory(arg = nil)
-        set_or_return(:source_directory, arg, kind_of: [String])
+      def source_data_directory(arg = nil)
+        set_or_return(:source_data_directory, arg, kind_of: [String])
+      end
+
+      #
+      # Path to a directory containing the database log files.
+      #
+      def source_log_directory(arg = nil)
+        set_or_return(:source_log_directory, arg, kind_of: [String])
       end
 
       #
@@ -86,6 +97,21 @@ class Chef
       def username(arg = nil)
         set_or_return(:username, arg, kind_of: [String])
       end
+
+      #
+      # The database group name.
+      #
+      def groupname(arg = nil)
+        set_or_return(:groupname, arg, kind_of: [String])
+      end
+
+      #
+      # The database group domain.
+      #
+      def domainname(arg = nil)
+        set_or_return(:domainname, arg, kind_of: [String])
+      end
+
     end
   end
 end
@@ -108,8 +134,11 @@ class Chef
         @current_resource.databases(r.databases)
         @current_resource.password(r.password)
         @current_resource.site(r.site)
-        @current_resource.source_directory(r.source_directory)
+        @current_resource.source_data_directory(r.source_data_directory)
+        @current_resource.source_log_directory(r.source_log_directory)
         @current_resource.username(r.username)
+        @current_resource.groupname(r.groupname)
+        @current_resource.domainname(r.domainname)
 
         @current_resource
       end
@@ -118,9 +147,10 @@ class Chef
         r = new_resource
         Chef::Log.info("Setting up databases on #{r.host}")
         r.databases.each do |db|
-          prefix = ::File.join(r.source_directory, db['name'])
-          mdf = "#{prefix}.mdf"
-          ldf = "#{prefix}.ldf"
+          data_prefix = ::File.join(r.source_data_directory, db['name'])
+          log_prefix = ::File.join(r.source_log_directory, db['name'])
+          mdf = "#{data_prefix}.mdf"
+          ldf = "#{log_prefix}.ldf"
           unless ::File.exist?(mdf)
             Chef::Log.error("File not found: #{mdf}")
             return
@@ -142,6 +172,15 @@ class Chef
         end
       end
 
+      def action_create_grouplogin
+        r = new_resource
+        Chef::Log.info("Creating db login #{r.groupname}")
+        create_grouplogin(r.host, r.groupname, r.domainname)
+        r.databases.each do |db|
+          add_grouplogin_to_db(r.host, r.groupname, db['name'], r.domainname)
+        end
+      end
+
       def action_assign_roles
         r = new_resource
         Chef::Log.info("Assigning roles to #{r.username}")
@@ -156,7 +195,25 @@ class Chef
             Chef::Log.warn("No roles found for #{dbtype}")
             return nil
           end
-          assign_db_roles(r.host, r.username, db['name'], roles)
+          assign_db_roles(r.host, r.username, db['name'], roles, r.domainname)
+        end
+      end
+
+      def action_assign_db_grouproles
+        r = new_resource
+        Chef::Log.info("Assigning roles to #{r.groupname}")
+        r.databases.each do |db|
+          dbtype = db['type']
+          unless DB_TYPES.include?(dbtype)
+            Chef::Log.warn("Unknown Sitecore db type: #{dbtype}")
+            return nil
+          end
+          roles = node['sitecore']['roles'][dbtype]
+          unless roles.is_a?(Array)
+            Chef::Log.warn("No roles found for #{dbtype}")
+            return nil
+          end
+          assign_db_grouproles(r.host, r.groupname, db['name'], roles, r.domainname)
         end
       end
     end
