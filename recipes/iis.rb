@@ -26,11 +26,21 @@ features = %w(
   IIS-Metabase IIS-ISAPIFilter NetFx3ServerFeatures NetFx3
   NetFx4Extended-ASPNET45 IIS-NetFxExtensibility45 IIS-ASPNET45
   IIS-NetFxExtensibility IIS-HttpRedirect NetFx3ServerFeatures IIS-ASPNET
-  IIS-ApplicationDevelopment IIS-ApplicationInit)
+  IIS-ApplicationDevelopment IIS-ApplicationInit
+)
 
-features.each do |feature|
-  windows_feature feature do
+windows_cb_version = Chef::Version.new(node['cookbooks']['windows']['version'])
+
+if windows_cb_version.major >= 3
+  windows_feature_powershell features do
     action :install
+  end
+else
+  features.each do |feature|
+    windows_feature feature do
+      provider Chef::Provider::WindowsFeaturePowershell
+      action :install
+    end
   end
 end
 
