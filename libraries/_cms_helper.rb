@@ -35,7 +35,7 @@ module Sitecore
     # triggers a CMS restart.
     #
     def set_sitecore_permissions(path, identity = 'NetworkService')
-      code = <<EOH
+      code = <<-'EOH'
 $path = '#{ps_safe_path(path)}'
 if (Test-Path $path)
 {
@@ -65,7 +65,7 @@ if (Test-Path $path)
   }
 }
 EOH
-      powershell_out!(code.gsub(/"/, '\\"'))
+      powershell_out!(code)
     end
 
     #
