@@ -204,14 +204,14 @@ class Chef
         new_resource.website_path.nil? ? set_sitecore_permissions(r.path) : set_sitecore_permissions(r.website_path)
 
         extract_sitecore_files(zip, website_path, data_path)
-        configure_data_folder(web_config_path, data_path)
+        # configure_data_folder(web_config_path, data_path)
         write_connection_strings(connection_strings_path, r.connection_strings)
         create_app_pool(r.name, r.runtime_version, r.identity)
         create_iis_website(r.name, website_path, r.bindings[0])
-        add_bindings(r.name, r.bindings)
+        # add_bindings(r.name, r.bindings)
         return if r.license.nil?
         place_license_file(r.license, data_path)
-        configure_license_file(web_config_path, license_path)
+        #configure_license_file(web_config_path, license_path)
       end
 
       def action_enable_solr
